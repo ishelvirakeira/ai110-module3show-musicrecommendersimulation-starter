@@ -174,7 +174,7 @@ The system never updates. A user who skips the top result every time would recei
 
 ---
 
-## Sample Output
+## Code Output
 
 <img width="243" height="146" alt="music recommender 6" src="https://github.com/user-attachments/assets/3849e32c-bbcc-45ac-b382-8b5c9a57c506" />
 <img width="267" height="274" alt="music recommender 5" src="https://github.com/user-attachments/assets/f56e60d0-4e64-4c00-b49b-956b064d5916" />
