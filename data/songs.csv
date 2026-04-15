@@ -1,11 +1,21 @@
-id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
-1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18
-2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71
-3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10
-4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86
-5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05
-6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92
-7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89
-8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22
-9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78
-10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35
+id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness,speechiness,instrumentalness,mode
+1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18,0.05,0.01,1
+2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71,0.03,0.85,0
+3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10,0.07,0.10,0
+4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86,0.02,0.90,1
+5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05,0.08,0.02,1
+6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92,0.04,0.95,1
+7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89,0.05,0.80,1
+8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22,0.04,0.70,0
+9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78,0.03,0.88,1
+10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35,0.06,0.02,1
+11,Gold Rush,Street Cipher,hip-hop,energetic,0.85,96,0.72,0.91,0.08,0.34,0.00,1
+12,Velvet Night,Sable Tone,r&b,romantic,0.55,88,0.74,0.77,0.30,0.09,0.02,1
+13,Morning Sonata,Clara Voss,classical,peaceful,0.22,66,0.68,0.28,0.98,0.04,0.97,1
+14,Gravel Roads,Dusty Hollow,country,nostalgic,0.57,104,0.63,0.60,0.74,0.06,0.03,1
+15,Signal Drop,Axiom Drive,edm,euphoric,0.96,138,0.88,0.94,0.02,0.05,0.55,1
+16,Iron Curtain,Faultline,metal,angry,0.98,174,0.22,0.42,0.04,0.12,0.08,0
+17,Shimmer Lane,The Velvet Ringers,funk,playful,0.68,108,0.87,0.85,0.52,0.07,0.05,1
+18,Neon Throne,PRISM7,k-pop,empowering,0.89,128,0.82,0.90,0.06,0.10,0.01,1
+19,Island Signal,Coral Drift,reggae,laid-back,0.48,82,0.78,0.70,0.55,0.08,0.12,1
+20,Empty Porch,Wren Calloway,folk,melancholic,0.31,76,0.38,0.43,0.91,0.05,0.15,0

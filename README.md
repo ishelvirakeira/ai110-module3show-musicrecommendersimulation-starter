@@ -17,17 +17,167 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world platforms like Spotify and YouTube use two main strategies to predict what a listener will enjoy. Collaborative filtering looks at patterns across millions of users — if people with similar taste to yours also loved a song, it gets recommended to you. Content-based filtering ignores other users entirely and instead analyzes the audio properties of songs — their energy, mood, tempo, and texture — then finds songs that sound like what you already like. Large platforms combine both, but for a small catalog with no user history, content-based filtering is the right foundation.
 
-Some prompts to answer:
+This system uses **content-based filtering with weighted proximity scoring**. A listener's taste is described by a `UserProfile`: a preferred genre and mood, plus numeric targets for seven audio dimensions (energy, valence, danceability, acousticness, tempo, speechiness, instrumentalness) and a boolean key-preference (`prefers_major`). Every song in the 20-song catalog is scored independently against that profile. For each numeric feature the formula is `proximity = 1.0 - |song_value - user_target|`, producing a 0–1 closeness value that is then multiplied by a feature-specific weight. Categorical fields (genre, mood) add flat bonus points when they match exactly. Scores are summed into a single number on a 0–10 scale, songs below 3.0 are dropped as poor matches, and the remainder are sorted highest-first to produce the final ranked list.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+**Data flow:** `songs.csv` → `load_songs()` → catalog of dicts → `recommend_songs()` loops over every song → `score_song()` calculates a weighted score per song → filter threshold (≥ 3.0) → sort descending → top `k` returned
 
-You can include a simple diagram or bullet list if helpful.
+**Features each `Song` uses:** `energy`, `valence`, `danceability`, `acousticness`, `tempo_bpm`, `speechiness`, `instrumentalness`, `mode`, `genre`, `mood`
+
+**What `UserProfile` stores:** `favorite_genre`, `favorite_mood`, `target_energy`, `target_valence`, `target_danceability`, `target_acousticness`, `target_tempo_bpm`, `target_speechiness`, `target_instrumentalness`, `prefers_major`
+
+**How scoring works:** weighted sum of proximity scores for each numeric feature, plus flat bonuses for genre and mood match — max possible score is 10.0
+
+**How recommendations are chosen:** all songs scored independently, filtered to ≥ 3.0, sorted by score descending, top `k` returned
+
+**Point budget (max 10.0):**
+
+| Signal | Points | Notes |
+|---|---|---|
+| Genre match | +2.0 | Flat bonus — exact categorical match |
+| Mood match | +1.0 | Flat bonus — exact categorical match |
+| Energy proximity | up to +2.0 | Primary vibe axis |
+| Valence proximity | up to +1.5 | Emotional tone (happy ↔ sad) |
+| Acousticness proximity | up to +1.0 | Organic vs electronic texture |
+| Danceability proximity | up to +0.75 | Groove and rhythmic drive |
+| Instrumentalness proximity | up to +0.75 | Vocal vs instrumental preference |
+| Tempo proximity | up to +0.50 | Normalized BPM before scoring |
+| Speechiness proximity | up to +0.25 | Separates rap/spoken word from everything else |
+| Mode proximity | up to +0.25 | Major (bright) vs minor (dark) key |
+
+---
+
+## Song and UserProfile Features
+
+### `Song` — What Each Track Knows About Itself
+
+Every song in `data/songs.csv` is represented as a `Song` object with thirteen fields:
+
+| Field | Type | Range / Values | What It Captures |
+|---|---|---|---|
+| `id` | int | 1 – 20 | Unique identifier, not used in scoring |
+| `title` | str | e.g. `"Sunrise City"` | Display name only |
+| `artist` | str | e.g. `"Neon Echo"` | Display name only |
+| `genre` | str | pop, lofi, rock, ambient, jazz, synthwave, indie pop, hip-hop, r&b, classical, country, edm, metal, funk, k-pop, reggae, folk | Cultural identity — triggers score bonus on match |
+| `mood` | str | happy, chill, intense, relaxed, focused, moody, energetic, romantic, peaceful, nostalgic, euphoric, angry, playful, empowering, laid-back, melancholic | Human-labeled emotional tone — triggers score bonus on match |
+| `energy` | float | 0.0 – 1.0 | Intensity and activity level — low = calm, high = driving/loud |
+| `valence` | float | 0.0 – 1.0 | Musical positiveness — high = happy/uplifting, low = sad/dark/tense |
+| `danceability` | float | 0.0 – 1.0 | How groove-based the rhythm is — beat strength, regularity, tempo stability |
+| `acousticness` | float | 0.0 – 1.0 | Organic vs electronic texture — high = warm/acoustic, low = digital/synthetic |
+| `tempo_bpm` | float | 60 – 174 | Beats per minute — normalized to 0–1 before proximity scoring |
+| `speechiness` | float | 0.0 – 1.0 | Proportion of spoken/rapped words — separates rap from instrumental |
+| `instrumentalness` | float | 0.0 – 1.0 | Absence of vocals — high = no singing, low = vocal-forward track |
+| `mode` | int | 0 or 1 | Musical key character — 1 = major (bright), 0 = minor (dark) |
+
+**Which fields are used in scoring:** all fields except `id`, `title`, and `artist`
+
+**Which fields are display-only:** `id`, `title`, `artist`
+
+---
+
+### `UserProfile` — What the System Knows About the Listener
+
+A `UserProfile` stores a listener's taste preferences as targets the scoring rule tries to match:
+
+| Field | Type | Range / Values | What It Captures |
+|---|---|---|---|
+| `favorite_genre` | str | same values as `Song.genre` | Preferred sonic world — triggers +2.0 bonus on match |
+| `favorite_mood` | str | same values as `Song.mood` | Desired emotional tone — triggers +1.0 bonus on match |
+| `target_energy` | float | 0.0 – 1.0 | Ideal intensity level — songs closest to this score highest |
+| `target_valence` | float | 0.0 – 1.0 | Ideal emotional tone — 0 = dark/sad, 1 = bright/happy |
+| `target_danceability` | float | 0.0 – 1.0 | Ideal groove level |
+| `target_acousticness` | float | 0.0 – 1.0 | Preferred texture — 1 = organic/warm, 0 = synthetic/electronic |
+| `target_tempo_bpm` | float | 60 – 174 | Preferred tempo in raw BPM (normalized before scoring) |
+| `target_speechiness` | float | 0.0 – 1.0 | Preferred vocal density — low = minimal words, high = rap/spoken |
+| `target_instrumentalness` | float | 0.0 – 1.0 | Preferred vocal presence — high = fully instrumental |
+| `prefers_major` | bool | `True` / `False` | Key preference — `True` = major (bright), `False` = minor (dark); converted to 1.0/0.0 for scoring |
+
+**Three built-in profiles defined in `src/main.py`:**
+
+- `PROFILE_STUDY` — Late-night lofi session: low energy (0.38), highly instrumental (0.85), slow tempo (78 BPM), major key
+- `PROFILE_WORKOUT` — High-intensity EDM: max energy (0.93), fast tempo (132 BPM), high danceability (0.90), major key
+- `PROFILE_WINDDOWN` — Rainy evening folk: very low energy (0.30), acoustic (0.88), slow (72 BPM), minor key
+
+---
+
+## Algorithm Recipe
+
+This is the exact decision process `score_song()` and `recommend_songs()` follow every time a recommendation is requested.
+
+### Step 1 — Load the catalog
+
+`load_songs("data/songs.csv")` reads every row into a list of dicts. Each dict maps column names to typed values (strings stay strings, numeric columns are cast to `float` or `int`).
+
+### Step 2 — Score every song independently
+
+For each song, `score_song(user_prefs, song)` runs the following rules in order:
+
+**Categorical bonuses (flat points, no proximity math)**
+
+1. If `song["genre"] == user_prefs["genre"]` → add **+2.0**
+2. If `song["mood"] == user_prefs["mood"]` → add **+1.0**
+
+**Numeric proximity scores (formula: `proximity = 1.0 - |song_value - user_target|`)**
+
+For each feature, proximity is always 0.0–1.0 (a perfect match = 1.0, furthest possible = 0.0). That proximity is multiplied by the feature's weight and added to the score.
+
+| # | Feature | Weight | Special handling |
+|---|---|---|---|
+| 3 | `energy` | × 2.00 | None |
+| 4 | `valence` | × 1.50 | None |
+| 5 | `acousticness` | × 1.00 | None |
+| 6 | `danceability` | × 0.75 | None |
+| 7 | `instrumentalness` | × 0.75 | None |
+| 8 | `tempo_bpm` | × 0.50 | Normalized: `(bpm − 60) / (174 − 60)` before proximity calc |
+| 9 | `speechiness` | × 0.25 | None |
+| 10 | `mode` | × 0.25 | `prefers_major=True → target 1.0`, `False → target 0.0` |
+
+**Maximum possible score: 10.0**
+
+### Step 3 — Attach a human-readable reason
+
+`score_song()` also builds a `reasons` list alongside the score. A reason string is appended when:
+- genre or mood matches (always)
+- `energy` proximity ≥ 0.85 (within 0.15 of target)
+- `valence` proximity ≥ 0.85
+
+If none of those triggers fire, the fallback reason `"similar overall audio profile"` is used.
+
+### Step 4 — Filter, sort, and return top k
+
+Back in `recommend_songs()`:
+1. Drop any song with `score < 3.0` (minimum quality threshold)
+2. Sort remaining songs by score descending; ties broken by energy proximity (closest energy wins)
+3. Return the top `k` songs (default `k = 5`) as a list of `(song_dict, score, explanation_string)` tuples
+
+---
+
+## Expected Biases and Limitations
+
+**1. Genre acts as a near-veto**
+A genre match adds +2.0 to a maximum of 10.0 — 20% of the total budget from a single binary signal. A perfect folk song with the wrong genre label will always score at least 2 points lower than an imperfect match that shares the genre. In a 20-song catalog, this can push genuinely fitting songs below the 3.0 threshold entirely.
+
+**2. Energy dominates numeric scoring**
+Energy is weighted at 2× more than valence and 4× more than danceability. A song that matches the user's vibe but runs at the wrong intensity (e.g., a mellow jazz track for a workout profile) will be penalized more heavily than any other single numeric mismatch. This is intentional for the current profiles, but makes the system less useful for listeners whose mood and tempo preferences diverge from their energy preference.
+
+**3. Single-point targets create filter bubbles**
+Every numeric target is a single ideal value. The scoring rule always rewards the song closest to that exact point — there is no range or tolerance band. A user who would happily accept any energy between 0.70 and 0.90 will still have the 0.90 song ranked above the 0.70 song even if the latter is a better match on every other dimension.
+
+**4. Valence conflates emotional axes**
+Valence measures happy vs. sad, but it cannot distinguish calm from tense or content from angry. A melancholic folk ballad (low valence, low energy) and an aggressive metal track (low valence, high energy) score identically on the valence axis. The `energy` feature partially compensates, but the combination still creates noise for moods like "angry" or "anxious" that sit in different corners of the emotional space.
+
+**5. Catalog size amplifies all of the above**
+With only 20 songs, each genre appears at most 1–3 times. A user whose favorite genre is `classical` has only one song that can ever receive the +2.0 genre bonus. The same bias that is manageable at Spotify's scale (millions of songs per genre) becomes a structural bottleneck at this scale.
+
+**6. No listening history or feedback loop**
+The system never updates. A user who skips the top result every time would receive the same recommendation on the next run. Real platforms adjust weights continuously based on implicit signals (skips, replays, saves). This simulation has no equivalent mechanism.
+
+---
+
+## Sample Output
+
+![Music Recommender terminal output](images/music%20recommender.PNG)
 
 ---
 
