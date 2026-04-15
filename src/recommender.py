@@ -120,16 +120,19 @@ def load_songs(csv_path: str) -> List[Dict]:
     return songs
 
 
-# ---------------------------------------------------------------------------
-# Point budget (max possible score = 10.0)
+
+# Point budget (max possible score = 11.0)
+# EXPERIMENT: genre halved (+2.0 → +1.0), energy doubled (×2.0 → ×4.0)
+# Hypothesis: audio proximity should outweigh a genre label in a small catalog.
+# Max score rises from 10.0 → 11.0 because energy ceiling went from +2.0 to +4.0.
 #
 #   Categorical bonuses  — fixed points awarded on exact match
-#     genre match            +2.0   (hard identity boundary — most impactful)
-#     mood match             +1.0   (softer context signal — half the genre bonus)
+#     genre match            +1.0   (HALVED — label is a weaker signal)
+#     mood match             +1.0   (unchanged — same weight as genre now)
 #
 #   Numeric proximity    — proximity = 1.0 - |song_value - user_target|
 #                          then multiplied by the feature's max points
-#     energy             up to +2.0   (primary vibe axis — equal to genre bonus)
+#     energy             up to +4.0   (DOUBLED — primary vibe axis dominates)
 #     valence            up to +1.5   (emotional tone)
 #     acousticness       up to +1.0   (texture: organic vs electronic)
 #     danceability       up to +0.75  (groove vs raw intensity)
@@ -138,7 +141,8 @@ def load_songs(csv_path: str) -> List[Dict]:
 #     speechiness        up to +0.25  (separates rap from everything else)
 #     mode               up to +0.25  (major = bright, minor = dark)
 #
-#   Minimum threshold to appear in results: 3.0 / 10.0
+#   New max = 1.0+1.0+4.0+1.5+1.0+0.75+0.75+0.50+0.25+0.25 = 11.0
+#   Minimum threshold to appear in results: 3.0 / 11.0
 # ---------------------------------------------------------------------------
 
 BPM_MIN = 60
@@ -157,26 +161,24 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     score = 0.0
     reasons: List[str] = []
 
-    # ------------------------------------------------------------------
-    # Categorical bonuses (+2.0 genre, +1.0 mood)
-    # ------------------------------------------------------------------
+    
+    # Categorical bonuses — genre HALVED to +1.0, mood unchanged at +1.0
     if song["genre"] == user_prefs.get("genre"):
-        score += 2.0
-        reasons.append(f"genre match: {song['genre']} (+2.0)")
+        score += 1.0
+        reasons.append(f"genre match: {song['genre']} (+1.0)")
 
     if song["mood"] == user_prefs.get("mood"):
         score += 1.0
         reasons.append(f"mood match: {song['mood']} (+1.0)")
 
-    # ------------------------------------------------------------------
+    
     # Numeric proximity scores
     # proximity = 1.0 - |song_value - user_target|  →  always 0.0–1.0
     # multiplied by max points for that feature
-    # ------------------------------------------------------------------
-
-    # Energy: up to +2.0
+   
+    # Energy: up to +4.0  (DOUBLED from +2.0 — experiment)
     energy_prox = 1.0 - abs(song["energy"] - user_prefs.get("target_energy", 0.5))
-    energy_pts = round(energy_prox * 2.0, 2)
+    energy_pts = round(energy_prox * 4.0, 2)
     score += energy_pts
     if energy_prox >= 0.85:
         reasons.append(

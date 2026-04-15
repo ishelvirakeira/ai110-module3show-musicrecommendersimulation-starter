@@ -20,12 +20,19 @@ except ModuleNotFoundError:
 # Each profile is a dict whose keys match Song feature names exactly.
 # Numeric targets use the same 0.0–1.0 scale as the CSV (except tempo_bpm).
 # The scoring rule rewards songs that are CLOSEST to each target value.
+#
+# Profile index:
+#   PROFILE_CHILL_LOFI    — late-night study, instrumental, acoustic
+#   PROFILE_HIGH_ENERGY_POP — upbeat radio pop, vocal, electronic
+#   PROFILE_INTENSE_ROCK  — deep/heavy rock, loud, distorted, minor key
+#   PROFILE_WORKOUT       — EDM gym session, maximum drive
+#   PROFILE_WINDDOWN      — rainy evening folk, melancholic, slow
 # ---------------------------------------------------------------------------
 
-# Profile 1 — Late-Night Study Session
-# Low energy, mostly instrumental, acoustic-leaning lofi.
-# Wants focus without distraction: no rap, no lyrics, gentle tempo.
-PROFILE_STUDY = {
+# Profile 1 — Chill Lofi
+# Late-night study session: low energy, mostly instrumental, acoustic texture.
+# No rap, no distracting lyrics — warm and focused.
+PROFILE_CHILL_LOFI = {
     "genre":                "lofi",
     "mood":                 "focused",
     "target_energy":        0.38,   # quiet and calm
@@ -38,9 +45,41 @@ PROFILE_STUDY = {
     "prefers_major":        True,   # major key — not dark or tense
 }
 
-# Profile 2 — Workout / High Energy
-# Maximum intensity: fast tempo, high danceability, uplifting.
-# Genre-flexible but wants the energy to feel electric.
+# Profile 2 — High-Energy Pop
+# Upbeat, vocal-forward, radio-friendly. High energy and valence,
+# strong danceability, fully produced/electronic texture, major key.
+PROFILE_HIGH_ENERGY_POP = {
+    "genre":                "pop",
+    "mood":                 "happy",
+    "target_energy":        0.82,   # upbeat and punchy
+    "target_valence":       0.82,   # bright and uplifting
+    "target_danceability":  0.80,   # groove-driven
+    "target_acousticness":  0.18,   # produced/electronic texture
+    "target_tempo_bpm":     118,    # standard pop dance tempo
+    "target_speechiness":   0.05,   # sung lyrics, not rap
+    "target_instrumentalness": 0.02, # vocal-forward
+    "prefers_major":        True,   # major key — bright tone
+}
+
+# Profile 3 — Deep Intense Rock
+# Heavy, loud, guitar-driven rock. High energy, dark valence, minor key.
+# Distorted texture means low acousticness; driving mid-tempo riff feel.
+PROFILE_INTENSE_ROCK = {
+    "genre":                "rock",
+    "mood":                 "intense",
+    "target_energy":        0.90,   # loud and aggressive
+    "target_valence":       0.35,   # dark, not uplifting
+    "target_danceability":  0.55,   # driving rhythm but not dance-floor
+    "target_acousticness":  0.10,   # electric guitars, heavy production
+    "target_tempo_bpm":     148,    # fast, driving pace
+    "target_speechiness":   0.06,   # shouted vocals ok, not rap
+    "target_instrumentalness": 0.10, # vocals present but raw
+    "prefers_major":        False,  # minor key — heavy and dark
+}
+
+# Profile 4 — Workout / EDM
+# Maximum intensity: fast tempo, high danceability, fully electronic.
+# Built for sustained physical effort — needs to feel electric throughout.
 PROFILE_WORKOUT = {
     "genre":                "edm",
     "mood":                 "energetic",
@@ -54,8 +93,9 @@ PROFILE_WORKOUT = {
     "prefers_major":        True,   # major key — uplifting
 }
 
-# Profile 3 — Rainy Evening Wind-Down
-# Melancholic but not angry. Acoustic, slow, minor key. Folk/ambient territory.
+# Profile 5 — Rainy Evening Wind-Down
+# Melancholic but not angry. Acoustic, slow, minor key. Folk territory.
+# Vocals present and emotionally expressive — this is a listening mood.
 PROFILE_WINDDOWN = {
     "genre":                "folk",
     "mood":                 "melancholic",
@@ -69,26 +109,18 @@ PROFILE_WINDDOWN = {
     "prefers_major":        False,  # minor key — darker tone
 }
 
-# Profile 4 — Pop / Happy
-# Upbeat, vocal-forward, radio-friendly pop. High energy and valence,
-# strong danceability, produced/electronic texture, major key.
-PROFILE_POP_HAPPY = {
-    "genre":                "pop",
-    "mood":                 "happy",
-    "target_energy":        0.82,   # upbeat and punchy
-    "target_valence":       0.82,   # bright and uplifting
-    "target_danceability":  0.80,   # groove-driven
-    "target_acousticness":  0.18,   # produced/electronic texture
-    "target_tempo_bpm":     118,    # standard pop dance tempo
-    "target_speechiness":   0.05,   # sung lyrics, not rap
-    "target_instrumentalness": 0.02, # vocal-forward
-    "prefers_major":        True,   # major key — bright tone
-}
+# Keep legacy name as alias so any existing test code still works
+PROFILE_STUDY = PROFILE_CHILL_LOFI
 
 # ---------------------------------------------------------------------------
 # Active profile — swap the variable name to test a different listener type
+#   PROFILE_CHILL_LOFI        late-night study, instrumental lofi
+#   PROFILE_HIGH_ENERGY_POP   upbeat radio pop
+#   PROFILE_INTENSE_ROCK      heavy/dark rock
+#   PROFILE_WORKOUT           EDM gym session
+#   PROFILE_WINDDOWN          rainy evening folk
 # ---------------------------------------------------------------------------
-ACTIVE_PROFILE = PROFILE_STUDY
+ACTIVE_PROFILE = PROFILE_CHILL_LOFI
 
 
 def main() -> None:
