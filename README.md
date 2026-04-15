@@ -99,7 +99,6 @@ A `UserProfile` stores a listener's taste preferences as targets the scoring rul
 - `PROFILE_WORKOUT` — High-intensity EDM: max energy (0.93), fast tempo (132 BPM), high danceability (0.90), major key
 - `PROFILE_WINDDOWN` — Rainy evening folk: very low energy (0.30), acoustic (0.88), slow (72 BPM), minor key
 
----
 
 ## Algorithm Recipe
 
@@ -135,7 +134,7 @@ For each feature, proximity is always 0.0–1.0 (a perfect match = 1.0, furthest
 
 **Maximum possible score: 10.0**
 
-### Step 3 — Attach a human-readable reason
+### Step 3 — Attach a human-readable reaso3n
 
 `score_song()` also builds a `reasons` list alongside the score. A reason string is appended when:
 - genre or mood matches (always)
@@ -177,7 +176,13 @@ The system never updates. A user who skips the top result every time would recei
 
 ## Sample Output
 
-![Music Recommender terminal output](images/music%20recommender.PNG)
+<img width="243" height="146" alt="music recommender 6" src="https://github.com/user-attachments/assets/3849e32c-bbcc-45ac-b382-8b5c9a57c506" />
+<img width="267" height="274" alt="music recommender 5" src="https://github.com/user-attachments/assets/f56e60d0-4e64-4c00-b49b-956b064d5916" />
+<img width="294" height="273" alt="music recommender 4" src="https://github.com/user-attachments/assets/dceefa4b-19d3-4fb9-8ef3-82ef3b907378" />
+<img width="241" height="329" alt="music recommender 3" src="https://github.com/user-attachments/assets/47d88d9e-0678-4b82-8c18-7de0b367f1ec" />
+<img width="269" height="348" alt="music recommender 2" src="https://github.com/user-attachments/assets/111d352f-785f-4fcd-9b41-3276e10e834e" />
+<img width="432" height="369" alt="music recommender 1" src="https://github.com/user-attachments/assets/1b4cfaaa-ebe2-4a81-a284-6d2dbe0b75a0" />
+
 
 ---
 
